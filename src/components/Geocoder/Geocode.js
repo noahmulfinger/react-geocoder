@@ -1,6 +1,10 @@
-import { suggest } from '@esri/arcgis-rest-geocoder';
+import { ApiKey } from "@esri/arcgis-rest-auth";
+import { geocode, suggest } from '@esri/arcgis-rest-geocoding';
 import debounce from 'lodash.debounce';
 import { useEffect, useReducer } from 'react';
+
+// Replace with your API key from the ArcgGIS for Developers' dashboard. This example is for demo purposes only - do not include your API Key in production code. 
+const API_KEY = "YOUR_API_KEY"
 
 const initialState = {
   data: undefined,
@@ -28,13 +32,25 @@ const reducer = (state, action) => {
   }
 };
 
-function Geocode({ address, children }) {
+const authentication = new ApiKey({ key: API_KEY });
+
+export function geocodeResult(selectedItem) {
+  const { magicKey } = selectedItem;
+
+  geocode({ magicKey, maxLocations: 1, authentication }).then((res) => {
+    console.log(res.candidates);
+    alert(res.candidates[0].address);
+  })
+}
+
+export function Suggest({ address, children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   useEffect(() => {
     const fetchData = debounce(async () => {
       try {
         const res = await suggest(address, {
           params: { location: [-76.6162, 39.3043], maxSuggestions: 5 },
+          authentication
         });
         dispatch({ type: 'FETCH_SUCCESS', payload: res.suggestions });
       } catch (e) {
@@ -54,5 +70,3 @@ function Geocode({ address, children }) {
     error,
   });
 }
-
-export default Geocode;

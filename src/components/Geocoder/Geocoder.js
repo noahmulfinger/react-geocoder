@@ -1,6 +1,5 @@
 import React from 'react';
 import Downshift from 'downshift';
-import { geocode } from '@esri/arcgis-rest-geocoder';
 
 import matchSorter from 'match-sorter';
 import {
@@ -13,16 +12,12 @@ import {
   XIcon,
   css,
 } from './Styles';
-import Geocode from './Geocode';
+import { Suggest, geocodeResult } from './Geocode';
 
 export default function Search() {
   const handleStateChange = ({ selectedItem }) => {
     if (selectedItem) {
-      const { magicKey } = selectedItem;
-      geocode({ magicKey, maxLocations: 1 }).then((res) => {
-        console.log(res.candidates);
-        alert(res.candidates[0].address);
-      });
+      geocodeResult(selectedItem);
     }
   };
   const getItems = (allItems, filter) => {
@@ -83,7 +78,7 @@ export default function Search() {
                 }
 
                 return (
-                  <Geocode address={`${inputValue}`}>
+                  <Suggest address={`${inputValue}`}>
                     {({ loading, error, data = [] }) => {
                       if (loading) {
                         return <Item disabled>Loading...</Item>;
@@ -111,7 +106,7 @@ export default function Search() {
                         </Item>
                       ));
                     }}
-                  </Geocode>
+                  </Suggest>
                 );
               })()}
             </Menu>
