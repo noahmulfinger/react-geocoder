@@ -1,7 +1,5 @@
-import React from 'react';
-import Downshift from 'downshift';
-
-import matchSorter from 'match-sorter';
+import React from "react";
+import Downshift from "downshift";
 import {
   Label,
   Menu,
@@ -11,8 +9,8 @@ import {
   ArrowIcon,
   XIcon,
   css,
-} from './Styles';
-import { Suggest, geocodeResult } from './Geocode';
+} from "./Styles";
+import { Suggest, geocodeResult } from "./Geocode";
 
 export default function Search() {
   const handleStateChange = ({ selectedItem }) => {
@@ -20,17 +18,10 @@ export default function Search() {
       geocodeResult(selectedItem);
     }
   };
-  const getItems = (allItems, filter) => {
-    return filter
-      ? matchSorter(allItems, filter, {
-          keys: ['text'],
-        })
-      : allItems;
-  };
 
   return (
     <Downshift
-      itemToString={(item) => (item ? item.text : '')}
+      itemToString={(item) => (item ? item.text : "")}
       onStateChange={handleStateChange}
     >
       {({
@@ -45,12 +36,12 @@ export default function Search() {
         getToggleButtonProps,
         getMenuProps,
       }) => (
-        <div {...css({ width: 450, margin: 'auto' })}>
+        <div {...css({ width: 450, margin: "auto" })}>
           <Label {...getLabelProps()}>Search Address</Label>
-          <div {...css({ position: 'relative' })}>
+          <div {...css({ position: "relative" })}>
             <Input
               {...getInputProps({
-                placeholder: 'Search Address',
+                placeholder: "Search Address",
               })}
             />
             {selectedItem ? (
@@ -66,7 +57,7 @@ export default function Search() {
               </ControllerButton>
             )}
           </div>
-          <div {...css({ position: 'relative', zIndex: 1000 })}>
+          <div {...css({ position: "relative", zIndex: 1000 })}>
             <Menu {...getMenuProps({ isOpen })}>
               {(() => {
                 if (!isOpen) {
@@ -78,7 +69,7 @@ export default function Search() {
                 }
 
                 return (
-                  <Suggest address={`${inputValue}`}>
+                  <Suggest address={inputValue}>
                     {({ loading, error, data = [] }) => {
                       if (loading) {
                         return <Item disabled>Loading...</Item>;
@@ -92,7 +83,7 @@ export default function Search() {
                         return <Item disabled>No Addresses found</Item>;
                       }
 
-                      return getItems(data, inputValue).map((item, index) => (
+                      return data.map((item, index) => (
                         <Item
                           key={index}
                           {...getItemProps({

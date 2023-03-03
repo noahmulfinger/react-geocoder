@@ -1,10 +1,10 @@
-import { ApiKey } from "@esri/arcgis-rest-auth";
-import { geocode, suggest } from '@esri/arcgis-rest-geocoding';
-import debounce from 'lodash.debounce';
-import { useEffect, useReducer } from 'react';
+import { ApiKeyManager } from "@esri/arcgis-rest-request";
+import { geocode, suggest } from "@esri/arcgis-rest-geocoding";
+import debounce from "lodash.debounce";
+import { useCallback, useEffect, useReducer } from "react";
 
-// Replace with your API key from the ArcgGIS for Developers' dashboard. This example is for demo purposes only - do not include your API Key in production code. 
-const API_KEY = "YOUR_API_KEY"
+// Create an `.env.local` file and add REACT_APP_API_KEY=<your-api-key>
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 const initialState = {
   data: undefined,
@@ -14,13 +14,13 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case 'FETCH_SUCCESS':
+    case "FETCH_SUCCESS":
       return {
         data: action.payload,
         loading: false,
         error: false,
       };
-    case 'FETCH_ERROR':
+    case "FETCH_ERROR":
       return {
         data: undefined,
         loading: false,
@@ -32,35 +32,41 @@ const reducer = (state, action) => {
   }
 };
 
-const authentication = new ApiKey({ key: API_KEY });
+const authentication = ApiKeyManager.fromKey(API_KEY);
 
 export function geocodeResult(selectedItem) {
   const { magicKey } = selectedItem;
 
-  geocode({ magicKey, maxLocations: 1, authentication }).then((res) => {
-    console.log(res.candidates);
-    alert(res.candidates[0].address);
-  })
+  geocode({ magicKey, authentication, params: { maxLocations: 1 } }).then(
+    (res) => {
+      const result = res.candidates[0];
+      alert(
+        `Address: ${result.address}\nLat/Long: [${result.location.y}, ${result.location.x}]`
+      );
+    }
+  );
 }
 
 export function Suggest({ address, children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  useEffect(() => {
-    const fetchData = debounce(async () => {
-      try {
-        const res = await suggest(address, {
-          params: { location: [-76.6162, 39.3043], maxSuggestions: 5 },
-          authentication
+  const debouncedCallback = useCallback(
+    debounce((value) => {
+      suggest(value, {
+        params: { location: [-116.539247, 33.825993], maxSuggestions: 5 },
+        authentication,
+      })
+        .then((res) => {
+          dispatch({ type: "FETCH_SUCCESS", payload: res.suggestions });
+        })
+        .catch((e) => {
+          dispatch({ type: "FETCH_ERROR", payload: e.message });
+          console.error(e);
         });
-        dispatch({ type: 'FETCH_SUCCESS', payload: res.suggestions });
-      } catch (e) {
-        dispatch({ type: 'FETCH_ERROR', payload: e.message });
+    }, 300),
+    []
+  );
 
-        console.error(e);
-      }
-    });
-    fetchData();
-  }, [address]);
+  useEffect(() => debouncedCallback(address), [address]);
 
   const { data, loading, error } = state;
 

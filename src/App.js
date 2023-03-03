@@ -9,7 +9,7 @@ function App() {
         display: "flex",
         justifyContent: "center",
         flexDirection: "column",
-        textAlign: "center"
+        textAlign: "center",
       }}
     >
       <h2>Geocoder Component</h2>
